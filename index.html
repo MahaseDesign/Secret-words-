@@ -293,6 +293,300 @@ body::before {
 .how-step { font-size:0.62rem; color:var(--muted); font-family:'JetBrains Mono',monospace; display:flex; gap:8px; }
 .how-step span:first-child { color:var(--accent2); flex-shrink:0; }
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Secret Words</title>
+<style>
+/* All fonts are system/safe — no external CDN needed, works fully offline */
+
+/* ── DARK THEME (default) ── */
+:root {
+  --bg: #0f0f1a;
+  --surface: #16162a;
+  --surface2: #1e1e38;
+  --accent: #7c6af7;
+  --accent2: #f76a8c;
+  --accent3: #6af7c8;
+  --text: #e8e8f8;
+  --muted: #7878a8;
+  --border: #2e2e52;
+  --fastest-color: #f7c86a;
+  --cell-size: 64px;
+  --radius: 12px;
+  --overlay-bg: rgba(10,10,22,0.94);
+}
+
+/* ── LIGHT THEME ── */
+body.light {
+  --bg: #f4f4fa;
+  --surface: #ffffff;
+  --surface2: #eeeef8;
+  --accent: #5a48e0;
+  --accent2: #e0486a;
+  --accent3: #18a87a;
+  --text: #1a1a2e;
+  --muted: #6868a0;
+  --border: #d0d0e8;
+  --fastest-color: #c08020;
+  --overlay-bg: rgba(240,240,250,0.96);
+}
+body.light::before { opacity: 0.15; }
+
+/* ── SUPERPOWER (DYSLEXIA) THEME ── */
+body.superpower {
+  --bg: #fdf6e3;
+  --surface: #f5ecd0;
+  --surface2: #ede0c0;
+  --accent: #5a4fcf;
+  --accent2: #d94f7a;
+  --accent3: #1a9e7a;
+  --text: #1a1a2e;
+  --muted: #5a5a7a;
+  --border: #c8b89a;
+  --overlay-bg: rgba(253,246,227,0.96);
+}
+body.superpower::before { display: none; }
+body.superpower,
+body.superpower * { font-family: 'Comic Sans MS', 'Comic Sans', 'Chalkboard SE', 'Chalkboard', cursive !important; }
+body.superpower .title { font-size: 1.9rem !important; letter-spacing: 0.04em !important; }
+body.superpower .cell  { font-size: 1.1rem !important; }
+
+/* ── COLOUR FILTERS ── */
+body.filter-protanopia   { filter: url(#f-prot); }
+body.filter-deuteranopia { filter: url(#f-deut); }
+body.filter-tritanopia   { filter: url(#f-trit); }
+body.filter-greyscale    { filter: grayscale(100%); }
+body.filter-highcontrast { filter: contrast(160%) brightness(1.05); }
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Trebuchet MS', 'Segoe UI', 'Arial Rounded MT Bold', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 12px 40px;
+  overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 540px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 13px;
+}
+
+/* ── ACCESSIBILITY BAR ── */
+.a11y-bar {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 12px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.a11y-row {
+  display: flex; align-items: center;
+  gap: 5px; flex-wrap: wrap;
+}
+.a11y-label {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  font-size: 0.56rem; color: var(--muted);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  white-space: nowrap; min-width: 52px;
+}
+.tog {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  font-size: 0.6rem; letter-spacing: 0.05em;
+  padding: 4px 9px; border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text);
+  cursor: pointer; transition: all 0.15s;
+  text-transform: uppercase; white-space: nowrap;
+}
+.tog:hover { border-color: var(--accent); color: var(--accent); }
+.tog.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tog.sp-btn.active {
+  background: linear-gradient(135deg,#f7c86a,#f76a8c);
+  border-color: #f7c86a; color: #1a1a2e; font-weight: 700;
+}
+
+/* ── HEADER ── */
+.header { text-align: center; padding-top: 2px; }
+.logo {
+  font-size: 0.6rem; letter-spacing: 0.3em;
+  color: var(--accent); text-transform: uppercase;
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace; margin-bottom: 4px;
+}
+.title {
+  font-size: 2.5rem; font-weight: 800; line-height: 1;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.tagline {
+  font-size: 0.65rem; color: var(--muted);
+  letter-spacing: 0.1em; margin-top: 5px;
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+}
+
+/* ── TIMER + BEST ── */
+.timer-row { display: flex; width: 100%; gap: 10px; }
+.timer-box, .best-box {
+  flex: 1; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 9px 12px; display: flex;
+  flex-direction: column; align-items: center; gap: 2px;
+}
+.timer-box { border-top: 3px solid var(--accent3); }
+.best-box  { border-top: 3px solid var(--fastest-color); }
+.timer-label, .best-label {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  font-size: 0.53rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
+.timer-display {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  font-size: 1.45rem; font-weight: 600;
+  color: var(--accent3); letter-spacing: 0.04em; line-height: 1;
+}
+.timer-display.urgent { color: var(--accent2); animation: blink 0.6s infinite; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.best-time {
+  font-family: 'Consolas', 'Courier New', 'Lucida Console', monospace;
+  font-size: 1.45rem; font-weight: 600;
+  color: var(--fastest-color); letter-spacing: 0.04em; line-height: 1;
+}
+.best-time.none { font-size: 0.9rem; color: var(--muted); padding-top: 4px; }
+
+/* ── PROGRESS ── */
+.progress-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+.progress-label { font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.6rem; color:var(--muted); white-space:nowrap; }
+.progress-bar { flex:1; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--accent3)); border-radius:2px; transition:width 0.5s; }
+.puzzle-count { font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.6rem; color:var(--accent3); }
+
+/* ── CLUE CARD ── */
+.clue-card {
+  width: 100%; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 13px 17px; position: relative; overflow: hidden;
+}
+.clue-card::before {
+  content: ''; position: absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+}
+.clue-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.clue-tag {
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.55rem;
+  color:var(--accent); background:rgba(124,106,247,0.12);
+  border:1px solid rgba(124,106,247,0.25); padding:2px 7px;
+  border-radius:4px; letter-spacing:0.1em; text-transform:uppercase;
+}
+.letter-count { font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.57rem; color:var(--muted); }
+.clue-text { font-size:1rem; font-weight:700; color:var(--text); line-height:1.4; }
+.clue-hint { margin-top:5px; font-size:0.66rem; color:var(--muted); font-family:'Consolas','Courier New','Lucida Console',monospace; }
+
+/* ── ANSWER DISPLAY ── */
+.answer-display {
+  display:flex; gap:4px; flex-wrap:wrap;
+  justify-content:center; width:100%;
+  min-height:40px; align-items:center;
+}
+.answer-letter {
+  width:33px; height:37px;
+  background:var(--surface2); border:2px solid var(--border);
+  border-radius:7px; display:flex; align-items:center; justify-content:center;
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:1rem; font-weight:600;
+  color:var(--text); transition:all 0.18s; text-transform:uppercase;
+}
+.answer-letter.filled { border-color:var(--accent); color:var(--accent); background:rgba(124,106,247,0.1); transform:scale(1.05); }
+.answer-letter.space-sep { width:10px; background:transparent; border:none; color:var(--muted); }
+
+/* ── GRID ── */
+.grid-wrap { position:relative; user-select:none; touch-action:none; }
+.path-svg  { position:absolute; inset:0; pointer-events:none; z-index:2; }
+.grid {
+  display:grid; gap:6px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:12px;
+  position:relative; z-index:3;
+}
+.cell {
+  width:var(--cell-size); height:var(--cell-size);
+  background:var(--surface2); border:2px solid var(--border);
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:1.3rem; font-weight:600;
+  color:var(--text); cursor:pointer;
+  transition:background 0.12s, border-color 0.12s, transform 0.1s, color 0.12s;
+  position:relative; z-index:4;
+}
+.cell:hover { border-color:var(--accent); }
+.cell.start-hint {
+  border-color:var(--accent3); border-width:3px;
+  background:rgba(106,247,200,0.1);
+  animation:hint-pulse 1.4s ease-in-out infinite;
+}
+@keyframes hint-pulse {
+  0%,100%{ box-shadow:0 0 8px rgba(106,247,200,0.3); }
+  50%    { box-shadow:0 0 20px rgba(106,247,200,0.85); }
+}
+.cell.start-hint::after {
+  content:'▶'; position:absolute; top:2px; right:3px;
+  font-size:0.5rem; color:var(--accent3); opacity:0.9;
+}
+.cell.selected { background:rgba(124,106,247,0.2); border-color:var(--accent); color:var(--accent); transform:scale(1.06); }
+.cell.first-selected { background:rgba(124,106,247,0.35); border-color:var(--accent); color:#fff; box-shadow:0 0 14px rgba(124,106,247,0.5); }
+.cell.correct { background:rgba(106,247,200,0.15); border-color:var(--accent3); color:var(--accent3); animation:pop 0.35s ease; }
+.cell.wrong-flash { background:rgba(247,106,140,0.2); border-color:var(--accent2); color:var(--accent2); animation:shake 0.4s ease; }
+@keyframes pop   { 0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);} }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
+
+/* ── CONTROLS ── */
+.controls { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+.btn {
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.68rem;
+  letter-spacing:0.07em; padding:9px 16px; border-radius:8px;
+  border:1px solid var(--border); background:var(--surface);
+  color:var(--text); cursor:pointer; transition:all 0.15s; text-transform:uppercase;
+}
+.btn:hover { border-color:var(--accent); color:var(--accent); }
+.btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn.primary:hover { opacity:0.85; }
+.btn:active { transform:scale(0.96); }
+
+/* ── STATUS ── */
+.status {
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.66rem;
+  min-height:1.4em; text-align:center; color:var(--muted);
+}
+.status.ok  { color:var(--accent3); }
+.status.err { color:var(--accent2); }
+
+/* ── HOW TO PLAY ── */
+.how-to { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px; }
+.how-title { font-size:0.6rem; letter-spacing:0.18em; color:var(--accent); text-transform:uppercase; font-family:'Consolas','Courier New','Lucida Console',monospace; margin-bottom:6px; }
+.how-steps { display:flex; flex-direction:column; gap:3px; }
+.how-step { font-size:0.62rem; color:var(--muted); font-family:'Consolas','Courier New','Lucida Console',monospace; display:flex; gap:8px; }
+.how-step span:first-child { color:var(--accent2); flex-shrink:0; }
+
 /* ── OVERLAYS ── */
 #win-overlay, #complete-overlay {
   display:none; position:fixed; inset:0;
@@ -311,12 +605,12 @@ body::before {
   text-align:center;
 }
 .win-word {
-  font-family:'JetBrains Mono',monospace; font-size:1.4rem;
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:1.4rem;
   color:var(--accent3); letter-spacing:0.18em; text-transform:uppercase; text-align:center;
 }
 .win-time-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
 .win-time-chip {
-  font-family:'JetBrains Mono',monospace; font-size:0.72rem;
+  font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.72rem;
   padding:5px 13px; border-radius:8px;
   border:1px solid var(--border); background:var(--surface);
   color:var(--text); text-align:center;
@@ -327,15 +621,15 @@ body::before {
   animation:glow 1s ease infinite alternate;
 }
 @keyframes glow { from{box-shadow:0 0 5px rgba(247,200,106,0.3);} to{box-shadow:0 0 18px rgba(247,200,106,0.75);} }
-.win-def { font-size:0.7rem; color:var(--muted); text-align:center; max-width:370px; line-height:1.65; font-family:'JetBrains Mono',monospace; }
+.win-def { font-size:0.7rem; color:var(--muted); text-align:center; max-width:370px; line-height:1.65; font-family:'Consolas','Courier New','Lucida Console',monospace; }
 .win-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 .complete-title {
   font-size:2.1rem; font-weight:800;
   background:linear-gradient(135deg,var(--accent2),var(--accent),var(--accent3));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; text-align:center;
 }
-.complete-stats { font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--accent3); text-align:center; line-height:2; }
-.complete-msg  { font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--muted); text-align:center; max-width:320px; line-height:1.8; }
+.complete-stats { font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.78rem; color:var(--accent3); text-align:center; line-height:2; }
+.complete-msg  { font-family:'Consolas','Courier New','Lucida Console',monospace; font-size:0.68rem; color:var(--muted); text-align:center; max-width:320px; line-height:1.8; }
 
 @media(max-width:400px) { :root{--cell-size:54px;} .title{font-size:2rem;} }
 @media(max-width:340px) { :root{--cell-size:46px;} }
@@ -468,4 +762,421 @@ const PUZZLES = [
   {answer:'RECURSION',   display:'RECURSION',   topic:'PROGRAMMING', clue:'When a function calls itself to solve a smaller version of the same problem',                 hint:'9 letters · the answer contains itself…',           definition:'A method where the solution to a problem depends on solutions to smaller instances of the same problem.'},
   {answer:'BOOLEAN',     display:'BOOLEAN',     topic:'DATA TYPES',  clue:'A data type with only two possible values: true or false',                                   hint:'7 letters · named after George ___',              definition:'Named after George Boole, a data type that represents one of two values: true or false (1 or 0).'},
   {answer:'COMPILER',    display:'COMPILER',    topic:'LANGUAGES',   clue:'Translates high-level source code into machine code before execution',                        hint:'8 letters · opposite of an interpreter',          definition:'A program that translates source code written in a high-level language into machine code or bytecode.'},
-  {answer:'ITERATION',   display:'ITERATION',   topic:'PROGRAMMING', clue:'The repetition of a pr
+  {answer:'ITERATION',   display:'ITERATION',   topic:'PROGRAMMING', clue:'The repetition of a process — typically done with a loop construct',                         hint:'9 letters · for/while loops do this',             definition:'The process of repeating a set of instructions a specified number of times or until a condition is met.'},
+  {answer:'VARIABLE',    display:'VARIABLE',    topic:'PROGRAMMING', clue:'A named storage location that holds a value which can change',                               hint:'8 letters · declared with let, var or int',       definition:'A named container for storing data values that can be referenced and manipulated throughout a program.'},
+  {answer:'BINARY',      display:'BINARY',      topic:'DATA REPR.',  clue:'A base-2 number system using only the digits 0 and 1',                                       hint:'6 letters · the language of computers',           definition:'A number system with a base of 2, using only digits 0 and 1 — the foundation of all digital computing.'},
+  {answer:'ARRAY',       display:'ARRAY',       topic:'DATA STRUCTS',clue:'An ordered collection of elements stored at contiguous memory locations',                    hint:'5 letters · accessed by index',                  definition:'A linear data structure that stores a fixed-size sequential collection of elements of the same type.'},
+  {answer:'FUNCTION',    display:'FUNCTION',    topic:'PROGRAMMING', clue:'A named, reusable block of code that performs a specific task',                              hint:'8 letters · def or void declares one',            definition:'A named block of reusable code designed to perform a particular task, callable from other parts of a program.'},
+  {answer:'NETWORK',     display:'NETWORK',     topic:'NETWORKING',  clue:'A system of interconnected computers that can communicate and share resources',              hint:'7 letters · the internet is a huge one',          definition:'A collection of computers, servers and other devices connected together to share data and resources.'},
+  {answer:'PIXEL',       display:'PIXEL',       topic:'GRAPHICS',    clue:'The smallest addressable element in a raster image or display',                             hint:'5 letters · short for "picture element"',         definition:'The smallest controllable element of a picture on a screen, derived from "picture element".'},
+  {answer:'SYNTAX',      display:'SYNTAX',      topic:'LANGUAGES',   clue:'The set of rules that define the structure of a programming language',                       hint:'6 letters · errors here stop compilation',        definition:'The set of rules that defines the combinations of symbols considered to be correctly structured programs.'},
+  {answer:'INTEGER',     display:'INTEGER',     topic:'DATA TYPES',  clue:'A whole number data type — no decimal point, no fractions',                                  hint:'7 letters · int for short',                      definition:'A data type representing whole numbers without a fractional component.'},
+  {answer:'ABSTRACTION', display:'ABSTRACTION', topic:'CONCEPTS',    clue:'Hiding complex implementation details and showing only essential features',                   hint:'11 letters · one of the 4 pillars of OOP',        definition:'The concept of hiding complex details and showing only the essential features of an object.'},
+  {answer:'DEBUGGING',   display:'DEBUGGING',   topic:'PROGRAMMING', clue:'The process of finding and fixing errors in a program',                                      hint:'9 letters · Grace Hopper found the first literal one', definition:'The process of identifying, analysing and removing errors (bugs) from computer software or hardware.'},
+  {answer:'PACKET',      display:'PACKET',      topic:'NETWORKING',  clue:'A formatted unit of data carried over a network',                                            hint:'6 letters · IP sends these',                     definition:'A small segment of data transmitted over a network, containing a header and a payload.'},
+  {answer:'ENCRYPTION',  display:'ENCRYPTION',  topic:'SECURITY',    clue:'Converting data into a secret code to prevent unauthorised access',                          hint:'10 letters · HTTPS uses this',                   definition:'The process of encoding information so that only authorised parties with the correct key can access it.'},
+  {answer:'CACHE',       display:'CACHE',       topic:'HARDWARE',    clue:'A small, fast memory that stores frequently accessed data for quicker retrieval',             hint:'5 letters · pronounced "cash"',                  definition:'A hardware or software component that stores data so future requests can be served faster.'},
+  {answer:'INHERITANCE', display:'INHERITANCE', topic:'OOP',         clue:'A mechanism where one class acquires properties and methods of another',                     hint:'11 letters · child class gets this from parent',  definition:'An OOP mechanism where a new class is derived from an existing class, inheriting its attributes and methods.'},
+  {answer:'BANDWIDTH',   display:'BANDWIDTH',   topic:'NETWORKING',  clue:'The maximum rate of data transfer across a network connection',                              hint:'9 letters · measured in Mbps or Gbps',            definition:'The maximum amount of data that can be transmitted over a network connection in a given time period.'},
+  {answer:'RUNTIME',     display:'RUNTIME',     topic:'PROGRAMMING', clue:'The period during which a program is actively running and executing',                        hint:'7 letters · errors here crash the program',       definition:'The period when a program is running. Runtime errors occur during execution rather than compilation.'},
+  {answer:'FIREWALL',    display:'FIREWALL',    topic:'SECURITY',    clue:'A security system that monitors and controls incoming and outgoing network traffic',          hint:'8 letters · a digital barrier',                  definition:'A network security device that monitors and filters incoming and outgoing network traffic based on rules.'},
+  {answer:'POLYMORPHISM',display:'POLYMORPHISM',topic:'OOP',         clue:'The ability of different objects to respond to the same method call differently',            hint:'12 letters · "many forms" in Greek',              definition:'The ability of a single interface to represent different underlying forms (data types or classes).'},
+  {answer:'PROTOCOL',    display:'PROTOCOL',    topic:'NETWORKING',  clue:'A set of rules governing how data is transmitted between devices',                           hint:'8 letters · TCP and UDP are both this',           definition:'A set of rules or procedures for transmitting data between electronic devices.'},
+  {answer:'HEXADECIMAL', display:'HEXADECIMAL', topic:'DATA REPR.',  clue:'A base-16 number system using digits 0–9 and letters A–F',                                  hint:'11 letters · CSS colours use this: #FF5733',      definition:'A positional numeral system with a base of 16, using sixteen distinct symbols: 0–9 and A–F.'},
+];
+
+// ── GRID GENERATION ──
+function buildGrid(answer) {
+  const len = answer.length;
+  let cols, rows;
+  if      (len <= 6)  { cols=3; rows=2; }
+  else if (len <= 8)  { cols=4; rows=2; }
+  else if (len <= 9)  { cols=3; rows=3; }
+  else if (len <= 12) { cols=4; rows=3; }
+  else                { cols=4; rows=3; }
+  while (cols*rows < len) rows++;
+  const cells = Array(cols*rows).fill(null);
+  const path  = genPath(rows, cols, len);
+  path.forEach((cellIdx, i) => { cells[cellIdx] = answer[i]; });
+  return { cells, rows, cols, path };
+}
+
+function genPath(rows, cols, len) {
+  function nbrs(idx) {
+    const r=Math.floor(idx/cols), c=idx%cols, out=[];
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      if(dr===0&&dc===0) continue;
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<rows&&nc>=0&&nc<cols) out.push(nr*cols+nc);
+    }
+    return out;
+  }
+  const starts=rnd([...Array(rows*cols).keys()]);
+  for (const s of starts) {
+    const vis=new Set([s]), path=[s];
+    function dfs(){
+      if(path.length===len) return true;
+      for(const n of rnd(nbrs(path[path.length-1]))){
+        if(!vis.has(n)){
+          vis.add(n);path.push(n);
+          if(dfs()) return true;
+          path.pop();vis.delete(n);
+        }
+      }
+      return false;
+    }
+    if(dfs()) return path;
+  }
+  return [...Array(len).keys()]; // fallback
+}
+
+function rnd(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+// ── TIMER: setInterval + Date.now — reliable in file://, GitHub Pages, content:// ──
+let _timerInterval = null;
+let _timerStart    = 0;   // Date.now() snapshot when puzzle started
+
+function startTimer() {
+  clearInterval(_timerInterval);
+  _timerStart = Date.now();
+  _updateTimerEl();   // show 0:00 immediately
+  _timerInterval = setInterval(_updateTimerEl, 500); // 500ms so display never lags >0.5s
+}
+
+function _updateTimerEl() {
+  var secs = Math.floor((Date.now() - _timerStart) / 1000);
+  var el   = document.getElementById('timer-display');
+  if (!el) return;
+  var m = Math.floor(secs / 60), s = secs % 60;
+  el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  el.className   = 'timer-display' + (secs >= 120 ? ' urgent' : '');
+}
+
+function stopTimer() {
+  clearInterval(_timerInterval);
+  _timerInterval = null;
+  return Math.floor((Date.now() - _timerStart) / 1000);
+}
+
+function fmtTime(s) {
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+// ── BEST TIMES: in-memory fallback if localStorage blocked ──
+var _bestCache = {};
+function getBest(word) {
+  if (_bestCache[word] !== undefined) return _bestCache[word];
+  try { var v=localStorage.getItem('sw2_'+word); return v ? parseInt(v) : null; } catch(e) { return null; }
+}
+function saveBest(word,secs) {
+  var prev=getBest(word);
+  if (prev===null || secs<prev) {
+    _bestCache[word]=secs;
+    try { localStorage.setItem('sw2_'+word,secs); } catch(e) {}
+    return true;
+  }
+  return false;
+}
+
+function showBest(word) {
+  const b=getBest(word), el=document.getElementById('best-time');
+  if(b===null){ el.textContent='—'; el.className='best-time none'; }
+  else        { el.textContent=fmtTime(b); el.className='best-time'; }
+}
+
+// ── GAME STATE ──
+let puzzles=[], pidx=0;
+let grid=null;            // { cells, rows, cols, path }
+let path=[];              // selected cell indices
+let dragging=false;
+let revealed=false;
+let puzzleDone=false;     // ← prevents double-submit
+let solvedTimes=[];
+
+function initGame() {
+  puzzles=rnd([...PUZZLES]); pidx=0; solvedTimes=[];
+  loadPuzzle();
+}
+
+function loadPuzzle() {
+  if(pidx>=puzzles.length){ showComplete(); return; }
+  const p=puzzles[pidx];
+  revealed=false; puzzleDone=false; path=[];
+
+  document.getElementById('clue-tag').textContent    = p.topic;
+  document.getElementById('clue-text').textContent   = p.clue;
+  document.getElementById('clue-hint').textContent   = p.hint;
+  document.getElementById('letter-count').textContent= p.answer.length+' letters';
+
+  grid=buildGrid(p.answer);
+  updateProgress();
+  renderGrid();
+  showBest(p.answer);
+  renderAnswer([]);
+  setStatus('Tap a ▶ letter to start your path','');
+  document.getElementById('win-overlay').classList.remove('show');
+  startTimer();
+}
+
+function updateProgress(){
+  const pct=(pidx/puzzles.length)*100;
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('puzzle-count').textContent=pidx+' / '+puzzles.length;
+}
+
+// ── RENDER GRID ──
+function renderGrid(){
+  const {cells,rows,cols}=grid;
+  const el=document.getElementById('grid');
+  el.style.gridTemplateColumns=`repeat(${cols},var(--cell-size))`;
+  el.innerHTML='';
+  cells.forEach((letter,idx)=>{
+    const c=document.createElement('div');
+    c.className='cell'; c.dataset.idx=idx;
+    c.textContent=letter||'';
+    if(!letter) c.style.visibility='hidden';
+    c.addEventListener('pointerdown',e=>{e.preventDefault();cellDown(idx);});
+    c.addEventListener('pointerenter',()=>{if(dragging)cellEnter(idx);});
+    el.appendChild(c);
+  });
+  // Size SVG and mark starts synchronously — no rAF needed
+  var svg=document.getElementById('path-svg');
+  svg.style.width=el.offsetWidth+'px';
+  svg.style.height=el.offsetHeight+'px';
+  markStarts();
+}
+
+function markStarts(){
+  const {path:p}=grid;
+  [p[0], p[p.length-1]].forEach(idx=>{
+    const el=cellEl(idx);
+    if(el) el.classList.add('start-hint');
+  });
+}
+
+function cellEl(idx){ return document.querySelector(`.cell[data-idx="${idx}"]`); }
+
+// ── INTERACTION ──
+function cellDown(idx){
+  if(puzzleDone) return;
+  if(!grid.cells[idx]) return;
+  dragging=true;
+
+  // Tap already-in-path cell → truncate back to it
+  const pos=path.indexOf(idx);
+  if(pos!==-1){
+    path.splice(pos+1).forEach(i=>cellEl(i)?.classList.remove('selected','first-selected'));
+    drawSVG(); renderAnswer(path); return;
+  }
+
+  // First tap: must be a start cell
+  if(path.length===0){
+    const ends=[grid.path[0], grid.path[grid.path.length-1]];
+    if(!ends.includes(idx)){
+      flash(idx);
+      setStatus('Start from a ▶ glowing cell!','err');
+      dragging=false; return;
+    }
+  }
+
+  // Non-adjacent while path exists → restart
+  if(path.length>0 && !adj(path[path.length-1],idx)) clearPath();
+
+  addCell(idx);
+  document.addEventListener('pointerup',()=>{dragging=false;},{once:true});
+}
+
+function cellEnter(idx){
+  if(!grid.cells[idx]||path.includes(idx)||path.length===0) return;
+  if(!adj(path[path.length-1],idx)) return;
+  addCell(idx);
+}
+
+function addCell(idx){
+  path.push(idx);
+  const el=cellEl(idx);
+  if(el){ el.classList.remove('start-hint'); el.classList.add('selected'); }
+  if(path.length===1) el?.classList.add('first-selected');
+  if(path.length>1) cellEl(path[0])?.classList.add('first-selected');
+  drawSVG(); renderAnswer(path);
+  const p=puzzles[pidx];
+  setStatus(path.length===p.answer.length ? 'Path complete — hit Submit!' : `${path.length} / ${p.answer.length} letters traced`,'');
+}
+
+function adj(a,b){
+  const {cols}=grid;
+  return Math.abs(Math.floor(a/cols)-Math.floor(b/cols))<=1 && Math.abs(a%cols-b%cols)<=1;
+}
+
+function flash(idx){
+  const el=cellEl(idx);
+  if(el){ el.classList.add('wrong-flash'); setTimeout(()=>el.classList.remove('wrong-flash'),420); }
+}
+
+// ── SVG PATH ──
+function drawSVG(){
+  const svg=document.getElementById('path-svg');
+  svg.innerHTML='';
+  if(path.length<2) return;
+  const pts=path.map(centerOf).filter(Boolean);
+  if(pts.length<2) return;
+  const poly=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+  poly.setAttribute('points',pts.map(p=>`${p.x},${p.y}`).join(' '));
+  poly.setAttribute('fill','none');
+  poly.setAttribute('stroke','rgba(124,106,247,0.55)');
+  poly.setAttribute('stroke-width','4');
+  poly.setAttribute('stroke-linecap','round');
+  poly.setAttribute('stroke-linejoin','round');
+  svg.appendChild(poly);
+}
+
+function centerOf(idx){
+  const c=cellEl(idx); if(!c) return null;
+  const gr=document.getElementById('grid').getBoundingClientRect();
+  const cr=c.getBoundingClientRect();
+  return {x:cr.left-gr.left+cr.width/2, y:cr.top-gr.top+cr.height/2};
+}
+
+// ── ANSWER DISPLAY ──
+function renderAnswer(sel){
+  const p=puzzles[pidx], {cells}=grid;
+  const con=document.getElementById('answer-display');
+  con.innerHTML='';
+  let si=0;
+  p.display.split('').forEach(ch=>{
+    const slot=document.createElement('div');
+    if(ch===' '){
+      slot.className='answer-letter space-sep'; slot.textContent='·';
+    } else {
+      slot.className='answer-letter';
+      if(si<sel.length){ slot.textContent=cells[sel[si]]||''; slot.classList.add('filled'); }
+      else { slot.textContent='_'; }
+      si++;
+    }
+    con.appendChild(slot);
+  });
+}
+
+// ── SUBMIT ──
+function submitAnswer(){
+  if(puzzleDone) return;                        // ← guard: ignore after solve
+  const p=puzzles[pidx], {cells}=grid;
+  if(path.length<p.answer.length){
+    setStatus('Use ALL '+p.answer.length+' letters!','err');
+    path.forEach(i=>flash(i)); return;
+  }
+  const traced=path.map(i=>cells[i]).join('');
+  const ok = traced===p.answer || traced.split('').reverse().join('')===p.answer;
+  if(ok){
+    puzzleDone=true;                            // ← lock puzzle
+    const elapsed=stopTimer();
+    const isRecord=!revealed ? saveBest(p.answer,elapsed) : false;
+    if(!revealed) solvedTimes.push(elapsed);
+    path.forEach(i=>{ const el=cellEl(i); if(el){el.classList.remove('selected','first-selected');el.classList.add('correct');} });
+    setTimeout(()=>showWin(p,elapsed,isRecord),420);
+  } else {
+    setStatus('Not right — retrace from a ▶ cell','err');
+    path.forEach(i=>flash(i));
+  }
+}
+
+function clearPath(){
+  path.forEach(i=>cellEl(i)?.classList.remove('selected','first-selected','correct','wrong-flash'));
+  path=[];
+  document.getElementById('path-svg').innerHTML='';
+  renderAnswer([]);
+  setStatus('Tap a ▶ letter to start your path','');
+  markStarts();
+}
+
+function revealAnswer(){
+  if(puzzleDone) return;
+  revealed=true;
+  clearPath();
+  grid.path.forEach(i=>{ path.push(i); cellEl(i)?.classList.add('selected'); });
+  cellEl(path[0])?.classList.add('first-selected');
+  drawSVG(); renderAnswer(path);
+  setStatus('Answer revealed — tap Submit to confirm','');
+}
+
+// ── WIN / NEXT ──
+function showWin(p,elapsed,isRecord){
+  document.getElementById('win-word').textContent=p.display;
+  document.getElementById('win-def').textContent=p.definition;
+  const tc=document.getElementById('win-time-chip');
+  const bc=document.getElementById('win-best-chip');
+  const best=getBest(p.answer);
+  if(isRecord){
+    tc.textContent='🏆 NEW RECORD: '+fmtTime(elapsed);
+    bc.textContent='🏆 Best: '+fmtTime(elapsed);
+    tc.className=bc.className='win-time-chip new-record';
+  } else {
+    tc.textContent='Time: '+(revealed?'n/a (revealed)':fmtTime(elapsed));
+    bc.textContent='Best: '+(best!==null?fmtTime(best):'—');
+    tc.className=bc.className='win-time-chip';
+  }
+  showBest(p.answer);
+  document.getElementById('win-overlay').classList.add('show');
+}
+
+function nextPuzzle(){
+  document.getElementById('win-overlay').classList.remove('show');
+  pidx++;
+  loadPuzzle();
+}
+
+function showComplete(){
+  const avg=solvedTimes.length?Math.round(solvedTimes.reduce((a,b)=>a+b)/solvedTimes.length):null;
+  const best=solvedTimes.length?Math.min(...solvedTimes):null;
+  document.getElementById('complete-stats').innerHTML=
+    (avg?'Avg time: '+fmtTime(avg)+'<br>':'')+(best?'Fastest: '+fmtTime(best):'');
+  document.getElementById('complete-overlay').classList.add('show');
+}
+
+function restartAll(){
+  document.getElementById('complete-overlay').classList.remove('show');
+  initGame();
+}
+
+// ── THEME / FILTER ──
+function setTheme(t){
+  document.body.classList.remove('light','superpower');
+  if(t==='light')       document.body.classList.add('light');
+  if(t==='superpower')  document.body.classList.add('superpower');
+  ['dark','light','sp'].forEach(id=>{
+    const el=document.getElementById('tog-'+id);
+    if(el) el.classList.toggle('active', (t==='dark'&&id==='dark')||(t==='light'&&id==='light')||(t==='superpower'&&id==='sp'));
+  });
+}
+
+function setFilter(f){
+  document.body.classList.remove('filter-protanopia','filter-deuteranopia','filter-tritanopia','filter-greyscale','filter-highcontrast');
+  if(f) document.body.classList.add('filter-'+f);
+  const map={'':'f-none',protanopia:'f-prot',deuteranopia:'f-deut',tritanopia:'f-trit',greyscale:'f-grey',highcontrast:'f-hico'};
+  document.querySelectorAll('[id^="f-"]').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById(map[f]||'f-none');
+  if(el) el.classList.add('active');
+}
+
+function setStatus(msg,type){
+  const el=document.getElementById('status');
+  el.textContent=msg;
+  el.className='status'+(type?' '+type:'');
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')  submitAnswer();
+  if(e.key==='Escape') clearPath();
+});
+window.addEventListener('resize', function(){
+  var g=document.getElementById('grid');
+  var s=document.getElementById('path-svg');
+  if(g && s){ s.style.width=g.offsetWidth+'px'; s.style.height=g.offsetHeight+'px'; }
+  drawSVG();
+});
+
+initGame();
+</script>
+</body>
+</html>
